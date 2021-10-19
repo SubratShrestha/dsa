@@ -8,3 +8,4 @@ Quick list:
 - DFS on a graph using adjacency list in O(|V + E|).
 - BFS on a graph using adjacency list in O(|V + E|).
 - Detect cycles in a directed graph using adjacency list in O(|V + E|).
+- Lowest common ancestor using Binary Lifting in O(logN) per query.
