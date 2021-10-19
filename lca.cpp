@@ -26,7 +26,7 @@ void dfs(int a) {
 }
 
 int lca(int a, int b) {
-    // // BRUTE FORCE : O(N)
+    // // BRUTE FORCE : O(N) per query
     // if (depth[a] < depth[b]) {
     //     swap(a, b);
     // }
@@ -45,7 +45,7 @@ int lca(int a, int b) {
     // return a;
 
 
-    // USE BINARY LIFTING
+    // USE BINARY LIFTING, O(log N) per query
     if (depth[a] < depth[b]) {
         swap(a, b);
     }
