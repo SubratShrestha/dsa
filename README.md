@@ -9,5 +9,6 @@ Quick list:
 - BFS on a graph using adjacency list in O(|V + E|).
 - Detect cycles in a directed graph using adjacency list in O(|V + E|).
 - Lowest common ancestor using Binary Lifting in O(logN) per query.
-- Topological sort of a graph in O(|V + E|)
-- Tarjan's algorithm to find strongly connected components in O(|V + E|)
+- Topological sort of a graph in O(|V + E|).
+- Tarjan's algorithm to find strongly connected components in O(|V + E|).
+- Kruskal's algorithm for minimum spanning tree in O(ElogE) time.
