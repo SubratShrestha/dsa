@@ -12,7 +12,7 @@ bool has_cycle(int u) {
     seen[u] = true;
     active[u] = true;
     for (int v : edges[u]) {
-    if (active[v] || has_cycle(v)) return true;
+        if (active[v] || has_cycle(v)) return true;
     }
     active[u] = false;
     return false;
