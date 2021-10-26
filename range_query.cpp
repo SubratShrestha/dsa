@@ -1,11 +1,8 @@
 /*
-Range queries of min.
-Segment tree to have a preprocessing time of O(N),
-query time of O(logN)
-update time of O(logN)
-
-node = index within the tree.
-id = index within the array/data.
+    Range update, point query in O(logN) time.
+    
+    node = index within the tree.
+    id = index within the array/data.
 */
 #include<iostream>
 #include<algorithm>
