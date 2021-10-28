@@ -12,25 +12,7 @@
 
 using namespace std;
 const int MAX = 100000;
-int tree[266666];
-int A[MAX];
 long long lazyadd[266666];
-
-void build_tree(int node, int start, int end) {
-    if (start == end) {
-        tree[node] = A[start];
-        return;
-    }
-
-    int mid = (start + end) / 2;
-
-    build_tree(node * 2 + 1, start, mid);
-    build_tree(node * 2 + 2, mid + 1, end);
-
-    tree[node] = tree[node * 2 + 1] + tree[node * 2 + 2];                   // change operation here.
-                                                                                // max for max, tree[n*2+1] + tree[n*2+2] for sum
-    return;
-}
 
 void update(int uL, int uR, int v, int i = 1, int cLeft = 0, int cRight = MAX) {
     // if the current range is exactly the same as the update range.
@@ -66,8 +48,6 @@ long long query(int p, int i = 1, int cLeft = 0, int cRight = MAX) {
 int main() {
     vector<long long> res;
     int n, q; cin >> n >> q;
-    for (int i = 0; i < n; i++) cin >> A[i];
-    build_tree(0, 0, n-1);
     for (int i = 0 ; i < q; i++) {
        char ch; cin >> ch;
        if (ch == 'U') {

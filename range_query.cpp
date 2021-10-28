@@ -1,16 +1,17 @@
 /*
-    Range update, point query in O(logN) time.
-    
+    Perform point updates and range queries in O(logN) time.
+
     node = index within the tree.
     id = index within the array/data.
 */
 #include<iostream>
 #include<algorithm>
+#include <vector>
 using namespace std;
 const int MAX = 100000;
 int tree[266666];
 int A[MAX];
-int res[MAX];
+vector<int> res;
 
 void build_tree(int node, int start, int end) {
     if (start == end) {
@@ -28,7 +29,7 @@ void build_tree(int node, int start, int end) {
     return;
 }
 
-void update(int node, int id, int start, int end, int value) {
+void update(int start, int end, int value, int id, int node = 0) {
     if (start == end) {
         tree[node] = value;
         A[id] = value;
@@ -38,8 +39,8 @@ void update(int node, int id, int start, int end, int value) {
     int mid = (start + end) / 2;
 
     if (id <= mid) {
-        update(node * 2 + 1, id, start, mid, value);
-    } else update(node * 2 + 2, id, mid + 1, end, value);
+        update(start, mid, value, id, node * 2 + 1);
+    } else update(mid + 1, end, value, id, node * 2 + 2);
 
     tree[node] = min(tree[node * 2 + 1], tree[node * 2 + 2]);                   // change operation here.
     return;
@@ -69,13 +70,18 @@ int main() {
     for (int i = 0; i < n; i++) cin >> A[i];
     build_tree(0, 0, n-1);
     for (int i = 0 ; i < q; i++) {
-        int l, r; cin >> l >> r;
-        res[i] = query(0, 0, n-1, l, r);
+        char ch; cin >> ch;
+        if (ch == 'Q') {
+            int l, r; cin >> l >> r;
+            res.push_back(query(0, 0, n-1, l, r));
+        } else {
+            int k, v; cin >> k >> v;
+            update(0, n-1, v, k);
+        }
     }
 
-    for (int i = 0; i < q; i++) {
-        cout << res[i] << '\n';
+    for (auto i : res) {
+        cout << i << '\n';
     }
-    
     return 0;
 }
