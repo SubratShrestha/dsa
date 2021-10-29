@@ -13,85 +13,102 @@
 #include <algorithm>
 
 using namespace std;
-const int MAX = 100005;
-ll lazyadd[266666];
-ll sum[266666];
 
-void update_sum(int id, ll l, ll r) {
-    sum[id] = (r - l) * lazyadd[id];
+const int MAX = 100000;
+int N, Q = 0;
+ll tree[4*MAX];
+ll lazy[4*MAX];
+ll A[MAX];
 
-    // if not a leaf, increment by children's sum
-    if (r - l > 1) {
-        sum[id] += sum[id * 2];
-        sum[id] += sum[id * 2 + 1];
-    }
-}
-
-void propagate(int id, ll l, ll r) {
-    ll mid = (l + r) / 2;
-
-    // increment children's lazy counter
-    lazyadd[id * 2] += lazyadd[id];
-    lazyadd[id * 2 + 1] += lazyadd[id];
-
-    // update children's sum
-    update_sum(id * 2, l, mid);
-    update_sum(id * 2 + 1, mid, r);
-    
-    // reset current node's lazy counter
-    lazyadd[id] = 0;
-}
-
-
-void update(int uL, int uR, int v, int i = 1, int cLeft = 0, int cRight = MAX) {
-    // if the current range is exactly the same as the update range.
-    if (uL == cLeft && uR == cRight) {
-        lazyadd[i] += v;
-        update_sum(i, cLeft, cRight);
+void build(int i = 1, int l = 1, int r = N) {
+    // base case: leaf node
+    if (l == r) {
+        tree[i] = A[l];
         return;
     }
-    propagate(i, cLeft, cRight);
-    int mid = (cLeft + cRight) / 2;
+
+    // recurse into children
+    int mid = (l + r) / 2;
+    build(2*i, l, mid);
+    build(2*i + 1, mid+1, r);
     
-    if (uL < mid) 
-        update(uL, min(uR, mid), v, i * 2, cLeft, mid);
-    
-    if (uR > mid) 
-        update(max(uL, mid), uR, v, i * 2 + 1, mid, cRight);
-    
-    update_sum(i, cLeft, cRight);
+    // update current node
+    tree[i] = tree[2*i] + tree[2*i + 1];
+    return;
 }
 
-ll query(int qL, int qR, int i = 1, int cLeft = 0, int cRight = MAX) {
-    if (qL == cLeft && qR == cRight) {
-        return sum[i];
+// if there are pending updates, update node and pass updates to children 
+void propagate(int i, int l, int r) {
+    if (lazy[i] != 0) {
+        tree[i] += lazy[i] * (r - l + 1);
+
+        if (l != r) {
+            tree[2*i] += lazy[i];
+            tree[2*i + 1] += lazy[i];
+        }
+
+        // reset pending update
+        lazy[i] = 0;
+    }
+}
+
+
+ll query(int ql, int qr, int i = 1, int l = 1, int r = N)  {
+    // if there are pending updates, update node and pass updates to children 
+    propagate(i, l, r);
+
+    // return if query not in node range
+    if (l > qr || r < ql) return 0;
+
+    // return value in tree if query is within node range
+    if (l >= ql && r <= qr) return tree[i];
+
+    // otherwise recurse to children, and return
+    int mid = (l + r) / 2;
+    return query(ql, qr, 2*i, l, mid) + query(ql, qr, 2*i + 1, mid+1, r);
+}
+
+void update(int ul, int ur, int v, int i = 1, int l = 1, int r = N) {
+    // if there are pending updates, update node and pass updates to children 
+    propagate(i, l, r);
+
+    // return if update not in node range
+    if (l > ur || r < ul) return;
+
+    // update tree value if update in range and pass update to children
+    if (l >= ul && r <= ur) {
+        tree[i] += (r - l + 1) * v;
+
+        if (l != r) {
+            lazy[2*i] += v;
+            lazy[2*i + 1] += v;
+        }
+        
+        return;
     }
 
-    propagate(i, cLeft, cRight);
-    
-    int mid = (cLeft + cRight) / 2;
-    ll ans = 0;
-    if (qL < mid)
-        ans += query(qL, min(qR, mid), i * 2, cLeft, mid);
-    if (qR > mid)
-        ans += query(max(qL, mid), qR, i * 2 + 1, mid, cRight);
-    
-    return ans;
+    // otherwise recurse to children, and then update tree value
+    int mid = (r + l ) / 2;
+    update(ul, ur, v, 2*i, l, mid);
+    update(ul, ur, v, 2*i + 1, mid+1, r);
 }
 
 int main() {
+    cin >> N >> Q;
     vector<ll> res;
-    int n, q; cin >> n >> q;
-    for (int i = 0; i < q; i++) {
+    build();
+
+    for (int i = 0; i < Q; i++) {
         char ch; cin >> ch;
         if (ch == 'U') {
             int l, r, v; cin >> l >> r >> v;
             update(l, r, v);
-        } else {
+        } else if (ch == 'Q') {
             int l, r; cin >> l >> r;
             res.push_back(query(l, r));
         }
     }
+
     for (auto i : res) cout << i << '\n';
     return 0;
 }
