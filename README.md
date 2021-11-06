@@ -2,8 +2,8 @@
 A handy collection of useful data structures and algorithms for quick reference in C++.
 
 Quick list:
-- Segment trees for O(logn) update and query with O(n) precomputation.
-- Union Find for almost O(1) joins/unions and almost O(1) find after O(n) precomputation.
+- Segment trees for $$O(logN)$$ update and query with O(N) precomputation.
+- Union Find for almost O(1) joins/unions and almost O(1) find after O(N) precomputation.
 - Representation of graph as an adjacency list.
 - DFS on a graph using adjacency list in O(|V + E|).
 - BFS on a graph using adjacency list in O(|V + E|).
