@@ -3,8 +3,18 @@
     Ex.
     Given an array a[N], initially all zeros, support Q operations, each being
     one of the following forms:
-    Update: U l r v. Perform a[l,..,r) += v.
-    Query: Q l r. Output a[l] + ... + a[r-1].
+
+    Update: U l r v. Perform a[l,..,r] += v.
+    Query: Q l r. Output a[l] + ... + a[r].
+
+    * l and r may be 0 ... N-1 (0 indexed)
+
+    For exclusive i.e Q(l, r) => sum of a[l,r) and U(l, r) => a[l, ..., r) += v:
+    - check leaves with (r - l == 1)
+    - recurse with Q/U(l, mid) and Q/U(mid, r)
+    - update sum with (r - l) * v
+    - add additional conditionals for update and query
+    - add min, max to the query/update calls
 */
 
 #define ll long long
@@ -20,9 +30,9 @@ ll tree[4*MAX];
 ll lazy[4*MAX];
 ll A[MAX];
 
-void build(int i = 1, int l = 1, int r = N) {
+void build(int i = 1, int l = 0, int r = N) {
     // base case: leaf node
-    if (l == r) {
+    if (r - l == 1) {                                         // (r == l) for inclusive
         tree[i] = A[l];
         return;
     }
@@ -30,19 +40,18 @@ void build(int i = 1, int l = 1, int r = N) {
     // recurse into children
     int mid = (l + r) / 2;
     build(2*i, l, mid);
-    build(2*i + 1, mid+1, r);
+    build(2*i + 1, mid, r);                                  // build(2*i+1, mid+1, r) for inclusive
     
     // update current node
     tree[i] = tree[2*i] + tree[2*i + 1];
-    return;
 }
 
 // if there are pending updates, update node and pass updates to children 
 void propagate(int i, int l, int r) {
     if (lazy[i] != 0) {
-        tree[i] += lazy[i] * (r - l + 1);
+        tree[i] += lazy[i] * (r - l);                       // (r - l + 1) for inclusive
 
-        if (l != r) {
+        if (r - l != 1) {
             tree[2*i] += lazy[i];
             tree[2*i + 1] += lazy[i];
         }
@@ -53,7 +62,7 @@ void propagate(int i, int l, int r) {
 }
 
 
-ll query(int ql, int qr, int i = 1, int l = 1, int r = N)  {
+ll query(int ql, int qr, int i = 1, int l = 0, int r = N)  {
     // if there are pending updates, update node and pass updates to children 
     propagate(i, l, r);
 
@@ -65,10 +74,19 @@ ll query(int ql, int qr, int i = 1, int l = 1, int r = N)  {
 
     // otherwise recurse to children, and return
     int mid = (l + r) / 2;
-    return query(ql, qr, 2*i, l, mid) + query(ql, qr, 2*i + 1, mid+1, r);
+    
+    ll ans = 0;
+    if (ql < mid)
+        ans += query(ql, min(qr, mid), 2*i, l, mid);
+    if (qr > mid)
+        ans += query(max(ql, mid), qr, 2*i + 1, mid, r);
+    return ans;
+
+    // For inclusive:
+    // return query(ql, qr, 2*i, l, mid) + query(ql, qr, 2*i + 1, mid, r);
 }
 
-void update(int ul, int ur, int v, int i = 1, int l = 1, int r = N) {
+void update(int ul, int ur, int v, int i = 1, int l = 0, int r = N) {
     // if there are pending updates, update node and pass updates to children 
     propagate(i, l, r);
 
@@ -77,9 +95,9 @@ void update(int ul, int ur, int v, int i = 1, int l = 1, int r = N) {
 
     // update tree value if update in range and pass update to children
     if (l >= ul && r <= ur) {
-        tree[i] += (r - l + 1) * v;
+        tree[i] += (r - l) * v;
 
-        if (l != r) {
+        if (r - l != 1) {                               // (r == l) for inclusive
             lazy[2*i] += v;
             lazy[2*i + 1] += v;
         }
@@ -88,9 +106,24 @@ void update(int ul, int ur, int v, int i = 1, int l = 1, int r = N) {
     }
 
     // otherwise recurse to children, and then update tree value
-    int mid = (r + l ) / 2;
-    update(ul, ur, v, 2*i, l, mid);
-    update(ul, ur, v, 2*i + 1, mid+1, r);
+    int mid = (r + l) / 2;
+    
+    if (ul < mid)                                          // for [l, r)
+        update(ul, min(ur, mid), v, 2*i, l, mid);
+    if (ur > mid)                                          // for [l, r)
+        update(max(ul, mid), ur, v, 2*i + 1, mid, r);
+    
+    // For inclusive:
+    // update(ul, ur, v, 2*i, l, mid);
+    // update(ul, ur, v, 2*i + 1, mid, r);
+    tree[i] = tree[2*i] + tree[2*i + 1];
+}
+
+void printVals() {
+    cout << "values: ";
+    for (int i = 0; i < N; i++) cout << query(i, i+1) << ' ';    // query(i, i) for inclusive
+    cout << endl;
+    return;
 }
 
 int main() {
@@ -99,12 +132,14 @@ int main() {
     build();
 
     for (int i = 0; i < Q; i++) {
-        char ch; cin >> ch;
+        char ch;
+        int l, r;
+        cin >> ch >> l >> r;
         if (ch == 'U') {
-            int l, r, v; cin >> l >> r >> v;
+            int v; cin >> v;
             update(l, r, v);
+            printVals();
         } else if (ch == 'Q') {
-            int l, r; cin >> l >> r;
             res.push_back(query(l, r));
         }
     }
