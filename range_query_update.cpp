@@ -4,17 +4,11 @@
     Given an array a[N], initially all zeros, support Q operations, each being
     one of the following forms:
 
-    Update: U l r v. Perform a[l,..,r] += v.
-    Query: Q l r. Output a[l] + ... + a[r].
+    (exclusive)
+    Update: U l r v. Perform a[l,..,r) += v.
+    Query: Q l r. Output a[l, ..., r)
 
     * l and r may be 0 ... N-1 (0 indexed)
-
-    For exclusive i.e Q(l, r) => sum of a[l,r) and U(l, r) => a[l, ..., r) += v:
-    - check leaves with (r - l == 1)
-    - recurse with Q/U(l, mid) and Q/U(mid, r)
-    - update sum with (r - l) * v
-    - add additional conditionals for update and query
-    - add min, max to the query/update calls
 */
 
 #define ll long long
@@ -108,9 +102,9 @@ void update(int ul, int ur, int v, int i = 1, int l = 0, int r = N) {
     // otherwise recurse to children, and then update tree value
     int mid = (r + l) / 2;
     
-    if (ul < mid)                                          // for [l, r)
+    if (ul < mid)                                     
         update(ul, min(ur, mid), v, 2*i, l, mid);
-    if (ur > mid)                                          // for [l, r)
+    if (ur > mid)                                    
         update(max(ul, mid), ur, v, 2*i + 1, mid, r);
     
     // For inclusive:
@@ -138,7 +132,7 @@ int main() {
         if (ch == 'U') {
             int v; cin >> v;
             update(l, r, v);
-            printVals();
+            printVals();                                        // optional
         } else if (ch == 'Q') {
             res.push_back(query(l, r));
         }
