@@ -15,3 +15,4 @@ Quick list:
 - Dijkstra's algorithm for single source shortest path to all nodes in O(|E| log|V|) (priority queue) or O(|V|^2) (loop) time.
 - Bellman-Ford algorithm for single source shortest path to all nodes in O(|V||E|) time.
 - Dinic's algorithm to find the max flow of a flow network in O(|V|^2 |E|) time.
+- Fast exponentiation - find X power N mod M in O(logN) time.
