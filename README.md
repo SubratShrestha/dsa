@@ -16,3 +16,4 @@ Quick list:
 - Bellman-Ford algorithm for single source shortest path to all nodes in O(|V||E|) time.
 - Dinic's algorithm to find the max flow of a flow network in O(|V|^2 |E|) time.
 - Fast exponentiation - find X power N mod M in O(logN) time.
+- Sieve of Eratosthenes to find all primes less than N in ~ O(NlogN) or O(log(logN)) time.
