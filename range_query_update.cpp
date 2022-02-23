@@ -2,142 +2,126 @@
     Segment tree to perform range updates and range queries in O(logN) time.
     Ex.
     Given an array a[N], initially all zeros, support Q operations, each being
-    one of the following forms:
+    one of the following:
 
-    (exclusive)
-    Update: U l r v. Perform a[l,..,r) += v.
-    Query: Q l r. Output a[l, ..., r)
+    Update: U l r v. Perform a[l,..,r] += v.
+    Query: Q l r. Sum of a[l] + ... + a[r].
 
-    * l and r may be 0 ... N-1 (0 indexed)
+    * l and r may be 0 ... N (1 indexed)
 */
 
-#define ll long long
-#include <iostream>
-#include <vector>
-#include <algorithm>
+#include<bits/stdc++.h>
 
 using namespace std;
 
-const int MAX = 100000;
-int N, Q = 0;
-ll tree[4*MAX];
-ll lazy[4*MAX];
-ll A[MAX];
+typedef long long ll;
 
-void build(int i = 1, int l = 0, int r = N) {
-    // base case: leaf node
-    if (r - l == 1) {                                         // (r == l) for inclusive
+const int MAX = 100001;
+int A[MAX];
+int tree[4 * MAX];
+int lazy[4 * MAX];
+
+int N, Q;
+
+void build(int i = 1, int l = 1, int r = N) {
+    if (l == r) {
         tree[i] = A[l];
         return;
     }
 
-    // recurse into children
     int mid = (l + r) / 2;
     build(2*i, l, mid);
-    build(2*i + 1, mid, r);                                  // build(2*i+1, mid+1, r) for inclusive
-    
-    // update current node
+    build(2*i + 1, mid + 1, r);
     tree[i] = tree[2*i] + tree[2*i + 1];
 }
 
-// if there are pending updates, update node and pass updates to children 
-void propagate(int i, int l, int r) {
+ll query(int ql, int qr, int i = 1, int l = 1, int r = N) {
     if (lazy[i] != 0) {
-        tree[i] += lazy[i] * (r - l);                       // (r - l + 1) for inclusive
+        tree[i] += lazy[i] * (r - l + 1);  // update range
 
-        if (r - l != 1) {
-            tree[2*i] += lazy[i];
-            tree[2*i + 1] += lazy[i];
+        if (l != r) {
+            lazy[2*i] += lazy[i];
+            lazy[2*i + 1] += lazy[i];
         }
-
-        // reset pending update
+        
         lazy[i] = 0;
     }
+
+    if (l > qr || r < ql) return 0;   // current range outside queried range.
+
+    if (l >= ql && r <= qr) return tree[i];  // current range inside queried range.
+
+    ll mid = (l + r) / 2;
+    return query(ql, qr, 2*i, l, mid) + query(ql, qr, 2*i + 1, mid + 1, r);
 }
 
+void update(int ql, int qr, ll v, int i = 1, int l = 1, int r = N) {
+    if (lazy[i] != 0) {
+        tree[i] += lazy[i] * (r - l + 1);  // update range
 
-ll query(int ql, int qr, int i = 1, int l = 0, int r = N)  {
-    // if there are pending updates, update node and pass updates to children 
-    propagate(i, l, r);
-
-    // return if query not in node range
-    if (l > qr || r < ql) return 0;
-
-    // return value in tree if query is within node range
-    if (l >= ql && r <= qr) return tree[i];
-
-    // otherwise recurse to children, and return
-    int mid = (l + r) / 2;
+        if (l != r) {
+            lazy[2*i] += lazy[i];
+            lazy[2*i + 1] += lazy[i];
+        } 
+        
+        lazy[i] = 0;
+    }
     
-    ll ans = 0;
-    if (ql < mid)
-        ans += query(ql, min(qr, mid), 2*i, l, mid);
-    if (qr > mid)
-        ans += query(max(ql, mid), qr, 2*i + 1, mid, r);
-    return ans;
+    if (l > qr || r < ql) return;
 
-    // For inclusive:
-    // return query(ql, qr, 2*i, l, mid) + query(ql, qr, 2*i + 1, mid, r);
-}
+    if (l >= ql && r <= qr) {
+        tree[i] += (r - l + 1) * v;
 
-void update(int ul, int ur, int v, int i = 1, int l = 0, int r = N) {
-    // if there are pending updates, update node and pass updates to children 
-    propagate(i, l, r);
-
-    // return if update not in node range
-    if (l > ur || r < ul) return;
-
-    // update tree value if update in range and pass update to children
-    if (l >= ul && r <= ur) {
-        tree[i] += (r - l) * v;
-
-        if (r - l != 1) {                               // (r == l) for inclusive
+        if (l != r) {
             lazy[2*i] += v;
             lazy[2*i + 1] += v;
         }
-        
+
         return;
     }
 
-    // otherwise recurse to children, and then update tree value
-    int mid = (r + l) / 2;
-    
-    if (ul < mid)                                     
-        update(ul, min(ur, mid), v, 2*i, l, mid);
-    if (ur > mid)                                    
-        update(max(ul, mid), ur, v, 2*i + 1, mid, r);
-    
-    // For inclusive:
-    // update(ul, ur, v, 2*i, l, mid);
-    // update(ul, ur, v, 2*i + 1, mid, r);
+    int mid = (l + r) / 2;
+    update(ql, qr, v, 2*i, l, mid);
+    update(ql, qr, v, 2*i + 1, mid + 1, r);
+
     tree[i] = tree[2*i] + tree[2*i + 1];
 }
 
-void printVals() {
-    cout << "values: ";
-    for (int i = 0; i < N; i++) cout << query(i, i+1) << ' ';    // query(i, i) for inclusive
-    cout << endl;
-    return;
+void print_vals() {
+    for (int i = 1; i <= N; i++) {
+        cout << query(i, i) << ' ';
+    }
+    cout << '\n';
+}
+
+void update_array() {
+    for (int i = 1; i <= N; i++) {
+        A[i - 1] = query(i, i);
+    }
 }
 
 int main() {
+    cin.tie(nullptr);
+    cin.sync_with_stdio(false);
+
     cin >> N >> Q;
-    vector<ll> res;
+    // initialize Array here.
+    for (int i = 1; i <= N; i++) A[i] = i;
+
     build();
 
-    for (int i = 0; i < Q; i++) {
-        char ch;
-        int l, r;
-        cin >> ch >> l >> r;
-        if (ch == 'U') {
+    while (Q--) {
+        char c; int l, r;
+        cin >> c >> l >> r;
+        if (c == 'Q') {
+            cout << "sum = " << query(l, r) << '\n';
+        } else {
             int v; cin >> v;
             update(l, r, v);
-            printVals();                                        // optional
-        } else if (ch == 'Q') {
-            res.push_back(query(l, r));
+            update_array();
+            for (int i = 0; i < N; i++) cout << A[i] << ' ';
+            cout << '\n';
         }
     }
-
-    for (auto i : res) cout << i << '\n';
     return 0;
 }
